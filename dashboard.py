@@ -7,7 +7,7 @@ st.set_page_config(layout="wide")
 st.title("Disaster Law Protections Across Regions")
 
 # Updated file path
-DATA_PATH = "Final_Combined_Emergency_Law_Data.xlsx"
+DATA_PATH = "Final_Combined_Emergency_Law_Data.csv"
 
 @st.cache_data
 def load_data(path):
@@ -51,3 +51,4 @@ if 'Region' in df.columns:
     st.subheader("📍 Explore by Region")
     region = st.selectbox("Select a Region", options=df['Region'].dropna().unique())
     st.dataframe(df[df['Region'] == region][valid_columns + ['Region']])
+
