@@ -6,17 +6,23 @@ import matplotlib.pyplot as plt
 st.set_page_config(layout="wide")
 st.title("Disaster Law Protections Across Regions")
 
-# Updated file path
+# Correct file path
 DATA_PATH = "Final_Combined_Emergency_Law_Data.csv"
 
 @st.cache_data
 def load_data(path):
-    return pd.read_excel(path)
+    return pd.read_csv(path)
 
-# Load data
+# Check file exists
+import os
+if not os.path.exists(DATA_PATH):
+    st.error(f"⚠️ File not found: {DATA_PATH}. Make sure it's in the app folder.")
+    st.stop()
+
+# Load the data
 df = load_data(DATA_PATH)
 
-# Define key features to visualize
+# Define columns to visualize
 feature_columns = [
     'Vulnerable Populations Protections',
     'Local Authority',
@@ -26,14 +32,14 @@ feature_columns = [
     'Equity Initiatives'
 ]
 
-# Filter to existing columns
+# Filter to actual columns in the dataset
 valid_columns = [col for col in feature_columns if col in df.columns]
 
-# Preview
+# Show data preview
 with st.expander("🔍 Preview Raw Data"):
     st.dataframe(df[valid_columns + ['SourceFile']] if 'SourceFile' in df.columns else df[valid_columns])
 
-# Charts
+# Bar charts for each column
 st.subheader("🧭 Feature Presence Across Jurisdictions")
 cols = st.columns(3)
 for i, col in enumerate(valid_columns):
@@ -46,9 +52,8 @@ for i, col in enumerate(valid_columns):
         plt.xticks(rotation=45)
         st.pyplot(fig)
 
-# Regional filter
+# Optional region filter
 if 'Region' in df.columns:
     st.subheader("📍 Explore by Region")
     region = st.selectbox("Select a Region", options=df['Region'].dropna().unique())
     st.dataframe(df[df['Region'] == region][valid_columns + ['Region']])
-
