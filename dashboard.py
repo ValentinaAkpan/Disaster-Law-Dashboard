@@ -39,17 +39,18 @@ for i, bar in enumerate(bars):
     else:
         bar.set_color(accent_color)
 
-ax_bar.set_xlabel('States', color='white', fontsize=12)
-ax_bar.set_ylabel('Number of Laws', color='white', fontsize=12)
+ax_bar.set_xlabel('States', color='#2c3e50', fontsize=12, fontweight='bold')
+ax_bar.set_ylabel('Number of Laws', color='#2c3e50', fontsize=12, fontweight='bold')
 ax_bar.set_xticks(range(len(state_count)))
-ax_bar.set_xticklabels(state_count.index, rotation=45, ha='right', color='white')
-ax_bar.tick_params(colors='white')
-ax_bar.set_facecolor('none')
-fig_bar.patch.set_facecolor('none')
+ax_bar.set_xticklabels(state_count.index, rotation=45, ha='right', color='#2c3e50')
+ax_bar.tick_params(colors='#2c3e50')
+ax_bar.set_facecolor('white')
+fig_bar.patch.set_facecolor('white')
+ax_bar.grid(True, alpha=0.3, color='#dee2e6')
 
 # Add value labels on bars
 for i, v in enumerate(state_count.values):
-    ax_bar.text(i, v + 0.1, str(v), ha='center', va='bottom', color='white', fontweight='bold')
+    ax_bar.text(i, v + 0.1, str(v), ha='center', va='bottom', color='#2c3e50', fontweight='bold')
 
 st.pyplot(fig_bar)
 
@@ -67,7 +68,7 @@ wedges, texts, autotexts = ax_pie.pie(authority_count.values,
                                       autopct="%1.1f%%", 
                                       startangle=90,
                                       colors=colors,
-                                      textprops={'color': 'white', 'fontsize': 12, 'fontweight': 'bold'})
+                                      textprops={'color': '#2c3e50', 'fontsize': 12, 'fontweight': 'bold'})
 
 # Customize the percentage text
 for autotext in autotexts:
@@ -76,7 +77,7 @@ for autotext in autotexts:
     autotext.set_fontsize(14)
 
 ax_pie.axis("equal")
-fig_pie.patch.set_facecolor('none')
+fig_pie.patch.set_facecolor('white')
 st.pyplot(fig_pie)
 
 # Sidebar filters
@@ -101,49 +102,63 @@ st.download_button(
 st.markdown(
     """
     <style>
-        /* Page background */
+        /* Page background - clean white/grey */
         .stApp {
-            background-color: #2d584a;
+            background-color: #f8f9fa;
         }
         
-        /* Text colors for contrast */
+        /* Text colors - dark for readability on light background */
         h1, h2, h3, h4, h5, h6, p, div, span {
-            color: white !important;
+            color: #2c3e50 !important;
         }
         
-        /* Sidebar styling */
+        /* Sidebar styling - light grey */
         section[data-testid="stSidebar"] {
-            background-color: #1f4032;
+            background-color: #e9ecef;
         }
         
         /* Sidebar text */
         .stSidebar h1, .stSidebar h2, .stSidebar h3, .stSidebar h4, .stSidebar h5, .stSidebar h6, .stSidebar p, .stSidebar div, .stSidebar span, .stSidebar label {
-            color: white !important;
+            color: #2c3e50 !important;
         }
         
-        /* Metric styling */
+        /* Metric styling - subtle background with green accent */
         [data-testid="metric-container"] {
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background-color: white;
+            border: 2px solid #2d584a;
             padding: 1rem;
             border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(45, 88, 74, 0.1);
         }
         
         /* DataFrame styling */
         .stDataFrame {
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: white;
+            border-radius: 0.5rem;
         }
         
         /* Download button styling */
         .stDownloadButton > button {
-            background-color: #4a7c59;
+            background-color: #2d584a;
             color: white;
             border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-weight: bold;
         }
         
         .stDownloadButton > button:hover {
-            background-color: #6b9b7f;
+            background-color: #1f4032;
             color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(45, 88, 74, 0.3);
+        }
+        
+        /* Warning message styling */
+        .stAlert {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
         }
     </style>
     """,
