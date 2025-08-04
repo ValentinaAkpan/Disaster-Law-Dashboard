@@ -6,7 +6,7 @@ import plotly.express as px
 st.set_page_config(page_title="Disaster Law Dashboard", layout="wide")
 st.title("📘 Disaster Law Dashboard for US States")
 
-# Load data
+# Load CSV file
 DATA_PATH = "Final_Combined_Emergency_Law_Data.csv"
 
 @st.cache_data
@@ -16,9 +16,8 @@ def load_data(path):
 df = load_data(DATA_PATH)
 df.columns = [col.strip() for col in df.columns]  # Clean column names
 
-# Sidebar filter with "All States"
+# Sidebar filter with "All States" option
 st.sidebar.header("🧭 Filter Options")
-
 all_states = sorted(df["State"].dropna().unique())
 state_options = ["All States"] + all_states
 selected_state = st.sidebar.selectbox("Select a State", state_options)
@@ -29,21 +28,32 @@ if selected_state == "All States":
 else:
     filtered_df = df[df["State"] == selected_state]
 
-# Bar Chart: Number of entries per state
+# 📌 Bar Chart: Number of entries (filtered)
 st.subheader("📌 Number of Entries per State")
-state_count = df["State"].value_counts().reset_index()
+state_count = filtered_df["State"].value_counts().reset_index()
 state_count.columns = ["State", "Count"]
-fig_bar = px.bar(state_count, x="State", y="Count", title="Number of Entries per State")
+fig_bar = px.bar(
+    state_count,
+    x="State",
+    y="Count",
+    title="Number of Entries" if selected_state != "All States" else "Number of Entries per State"
+)
 st.plotly_chart(fig_bar, use_container_width=True)
 
-# Pie Chart: Local Authority Enabled
+# 🏛️ Pie Chart: Local Authority Enabled (Yes/No)
 st.subheader("🏛️ Local Authority Enabled (Yes/No)")
-authority_count = filtered_df["Local Authority"].value_counts().reset_index()
-authority_count.columns = ["Response", "Count"]
-fig_pie = px.pie(authority_count, names="Response", values="Count", title="Local Authority Status")
-st.plotly_chart(fig_pie, use_container_width=True)
+if "Local Authority" in filtered_df.columns:
+    authority_count = filtered_df["Local Authority"].value_counts().reset_index()
+    authority_count.columns = ["Response", "Count"]
+    fig_pie = px.pie(
+        authority_count,
+        names="Response",
+        values="Count",
+        title="Local Authority Status"
+    )
+    st.plotly_chart(fig_pie, use_container_width=True)
 
-# Optional: Protections summary per state
+# 👥 Protections bar chart
 if "Vulnerable Populations Protections" in filtered_df.columns:
     protection_counts = (
         filtered_df["Vulnerable Populations Protections"]
@@ -57,6 +67,6 @@ if "Vulnerable Populations Protections" in filtered_df.columns:
             protection_counts,
             x="Protection",
             y="Count",
-            title="Protections in Selected State"
+            title="Protections in Selected State" if selected_state != "All States" else "Protections Across All States"
         )
         st.plotly_chart(fig_protect, use_container_width=True)
