@@ -77,23 +77,38 @@ if "Local Authority" in filtered_df.columns:
     )
     st.plotly_chart(fig_pie, use_container_width=True)
 
-# 👥 Protections bar chart
+# 👥 Protections - Categorized View
+def simplify_protection(val):
+    val = str(val).lower()
+    if "language" in val:
+        return "Language Access"
+    elif "disability" in val or "functional need" in val:
+        return "Disability Inclusion"
+    elif "equity" in val or "civil rights" in val:
+        return "Equity Mandate"
+    elif "tribe" in val or "nonprofit" in val:
+        return "Community Inclusion"
+    elif "shelter" in val or "evacuation" in val:
+        return "Emergency Services"
+    elif "federal standard" in val:
+        return "Federal Standard"
+    else:
+        return "Other"
+
 if "Vulnerable Populations Protections" in filtered_df.columns:
-    protection_counts = (
-        filtered_df["Vulnerable Populations Protections"]
-        .value_counts()
-        .reset_index()
+    filtered_df["Protection Category"] = filtered_df["Vulnerable Populations Protections"].apply(simplify_protection)
+    protection_summary = (
+        filtered_df["Protection Category"].value_counts().reset_index()
     )
-    protection_counts.columns = ["Protection", "Count"]
-    if not protection_counts.empty:
-        st.subheader("👥 Vulnerable Populations Protections")
-        fig_protect = px.bar(
-            protection_counts,
-            x="Protection",
-            y="Count",
-            title="Protections in Selected State" if selected_state != "All States" else "Protections Across All States"
-        )
-        st.plotly_chart(fig_protect, use_container_width=True)
+    protection_summary.columns = ["Category", "Count"]
+    st.subheader("👥 Protection Categories")
+    fig_protect = px.bar(
+        protection_summary,
+        x="Category",
+        y="Count",
+        title="Grouped Protections" if selected_state != "All States" else "Grouped Protections Across All States"
+    )
+    st.plotly_chart(fig_protect, use_container_width=True)
 
 # 🟣 Pie Chart: Equity Initiatives
 if "Equity Initiatives" in filtered_df.columns:
