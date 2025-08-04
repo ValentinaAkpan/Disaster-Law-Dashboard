@@ -25,18 +25,23 @@ selected_state = st.selectbox("Select a State", state_options, index=0)
 # Filter logic
 filtered_df = df if selected_state == "All States" else df[df["State"] == selected_state]
 
-# Summary section
-st.markdown("### 📝 Summary")
-st.markdown(f"- **{selected_state}** selected")
-st.markdown(f"- **{len(filtered_df)} records** found")
-st.markdown(f"- **{filtered_df['Equity Initiatives'].str.lower().eq('yes').sum()} equity initiatives**")
-st.markdown(f"- **{filtered_df['Local Authority'].str.lower().eq('yes').sum()} states with local authority enabled**")
-
 # Helper for metrics
 def count_yes(column):
     return filtered_df[column].str.lower().eq("yes").sum() if column in filtered_df.columns else 0
 
-# Tabs for dashboard sections
+# Tab styling
+st.markdown("""
+    <style>
+    .stTabs [data-baseweb="tab"] {
+        font-weight: 700 !important;
+        font-size: 18px !important;
+        padding: 1rem 2rem !important;
+        margin-right: 1rem !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# Tabs
 tab1, tab2, tab3 = st.tabs(["📈 Metrics", "📌 State Charts", "🛡️ Protections"])
 
 with tab1:
@@ -97,11 +102,3 @@ with tab3:
         mitigation_counts.columns = ["Response", "Count"]
         fig_mitigation = px.pie(mitigation_counts, names="Response", values="Count", title="Mitigation Planning")
         st.plotly_chart(fig_mitigation, use_container_width=True)
-
-# Download all data
-st.download_button(
-    label="📥 Download Full Dataset",
-    data=df.to_csv(index=False),
-    file_name="Final_Combined_Emergency_Law_Data.csv",
-    mime="text/csv"
-)
