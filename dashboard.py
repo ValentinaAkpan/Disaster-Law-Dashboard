@@ -25,7 +25,7 @@ selected_state = st.selectbox("Select a State", state_options, index=0)
 # Filter logic
 filtered_df = df if selected_state == "All States" else df[df["State"] == selected_state]
 
-# Tab styling
+# Custom tab styling
 st.markdown("""
     <style>
     .stTabs [data-baseweb="tab"] {
@@ -37,22 +37,40 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Tabs
+# Define tabs
 tab1, tab2, tab3 = st.tabs(["Metrics", "State Charts", "Protections"])
 
-# Metrics
+# Function to get count and states for "yes" responses
+def get_yes_states(column):
+    if column not in filtered_df.columns:
+        return "No data", []
+    df_yes = filtered_df[filtered_df[column].str.lower() == "yes"]
+    count = len(df_yes)
+    states = df_yes["State"].dropna().unique().tolist()
+    return count, states
+
+# Metrics Tab
 with tab1:
-    col1, col2, col3, col4 = st.columns(4)
+    metrics = {
+        "Equity Initiatives": "Equity Initiatives",
+        "Mutual Aid Agreements": "Mutual Aid",
+        "Mitigation Planning": "Mitigation Planning",
+        "Emergency Powers (Local)": "Local Emergency Powers"
+    }
 
-    def count_yes(column):
-        return filtered_df[column].str.lower().eq("yes").sum() if column in filtered_df.columns else "No data"
+    col1, col2 = st.columns(2)
+    col3, col4 = st.columns(2)
 
-    col1.metric("Equity Initiatives", count_yes("Equity Initiatives"))
-    col2.metric("Mutual Aid Agreements", count_yes("Mutual Aid"))
-    col3.metric("Mitigation Planning", count_yes("Mitigation Planning"))
-    col4.metric("Emergency Powers (Local)", count_yes("Local Emergency Powers"))
+    for col, (label, field) in zip([col1, col2, col3, col4], metrics.items()):
+        count, states = get_yes_states(field)
+        with col:
+            st.metric(label, count)
+            if states:
+                st.caption(", ".join(sorted(states)))
+            else:
+                st.caption("No states with this status")
 
-# State Charts
+# State Charts Tab
 with tab2:
     st.subheader("Number of Entries per State")
 
@@ -74,7 +92,7 @@ with tab2:
         else:
             st.info("No data on Local Authority.")
 
-# Protections
+# Protections Tab
 with tab3:
     if filtered_df.empty:
         st.warning("No data available for the selected state.")
