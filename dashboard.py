@@ -6,7 +6,7 @@ import plotly.express as px
 st.set_page_config(page_title="Disaster Law Dashboard", layout="wide")
 st.title("📘 Disaster Law Dashboard for US States")
 
-# Load CSV file
+# Load data
 DATA_PATH = "Final_Combined_Emergency_Law_Data.csv"
 
 @st.cache_data
@@ -14,122 +14,94 @@ def load_data(path):
     return pd.read_csv(path)
 
 df = load_data(DATA_PATH)
-df.columns = [col.strip() for col in df.columns]  # Clean column names
+df.columns = [col.strip() for col in df.columns]
 
-# Sidebar filter with "All States" option
-st.sidebar.header("🧭 Filter Options")
+# Top filter
+st.markdown("### 🔍 Filter by State")
 all_states = sorted(df["State"].dropna().unique())
 state_options = ["All States"] + all_states
-selected_state = st.sidebar.selectbox("Select a State", state_options)
+selected_state = st.selectbox("Select a State", state_options, index=0)
 
 # Filter logic
-if selected_state == "All States":
-    filtered_df = df.copy()
-else:
-    filtered_df = df[df["State"] == selected_state]
+filtered_df = df if selected_state == "All States" else df[df["State"] == selected_state]
 
-# -------------------------
-# 📈 Metrics Overview
-# -------------------------
-st.subheader("📈 Metrics Overview")
+# Summary section
+st.markdown("### 📝 Summary")
+st.markdown(f"- **{selected_state}** selected")
+st.markdown(f"- **{len(filtered_df)} records** found")
+st.markdown(f"- **{filtered_df['Equity Initiatives'].str.lower().eq('yes').sum()} equity initiatives**")
+st.markdown(f"- **{filtered_df['Local Authority'].str.lower().eq('yes').sum()} states with local authority enabled**")
 
-col_a, col_b, col_c, col_d = st.columns(4)
-
+# Helper for metrics
 def count_yes(column):
-    if column in filtered_df.columns:
-        return filtered_df[column].str.lower().eq("yes").sum()
-    return 0
+    return filtered_df[column].str.lower().eq("yes").sum() if column in filtered_df.columns else 0
 
-with col_a:
-    st.metric("Equity Initiatives", count_yes("Equity Initiatives"))
+# Tabs for dashboard sections
+tab1, tab2, tab3 = st.tabs(["📈 Metrics", "📌 State Charts", "🛡️ Protections"])
 
-with col_b:
-    st.metric("Mutual Aid Agreements", count_yes("Mutual Aid"))
+with tab1:
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Equity Initiatives", count_yes("Equity Initiatives"))
+    col2.metric("Mutual Aid Agreements", count_yes("Mutual Aid"))
+    col3.metric("Mitigation Planning", count_yes("Mitigation Planning"))
+    col4.metric("Emergency Powers (Local)", count_yes("Local Emergency Powers"))
 
-with col_c:
-    st.metric("Mitigation Planning", count_yes("Mitigation Planning"))
+with tab2:
+    st.subheader("📌 Number of Entries per State")
+    state_count = filtered_df["State"].value_counts().reset_index()
+    state_count.columns = ["State", "Count"]
+    fig_bar = px.bar(state_count, x="State", y="Count", title="Entries per State")
+    st.plotly_chart(fig_bar, use_container_width=True)
 
-with col_d:
-    st.metric("Emergency Powers (Local)", count_yes("Local Emergency Powers"))
+    if "Local Authority" in filtered_df.columns:
+        st.subheader("🏛️ Local Authority Enabled")
+        authority_count = filtered_df["Local Authority"].value_counts().reset_index()
+        authority_count.columns = ["Response", "Count"]
+        fig_pie = px.pie(authority_count, names="Response", values="Count", title="Local Authority Status")
+        st.plotly_chart(fig_pie, use_container_width=True)
 
-# 📌 Bar Chart: Number of entries (filtered)
-st.subheader("📌 Number of Entries per State")
-state_count = filtered_df["State"].value_counts().reset_index()
-state_count.columns = ["State", "Count"]
-fig_bar = px.bar(
-    state_count,
-    x="State",
-    y="Count",
-    title="Number of Entries" if selected_state != "All States" else "Number of Entries per State"
+with tab3:
+    def simplify_protection(val):
+        val = str(val).lower()
+        if "language" in val:
+            return "Language Access"
+        elif "disability" in val or "functional need" in val:
+            return "Disability Inclusion"
+        elif "equity" in val or "civil rights" in val:
+            return "Equity Mandate"
+        elif "tribe" in val or "nonprofit" in val:
+            return "Community Inclusion"
+        elif "shelter" in val or "evacuation" in val:
+            return "Emergency Services"
+        elif "federal standard" in val:
+            return "Federal Standard"
+        else:
+            return "Other"
+
+    if "Vulnerable Populations Protections" in filtered_df.columns:
+        filtered_df["Protection Category"] = filtered_df["Vulnerable Populations Protections"].apply(simplify_protection)
+        protection_summary = filtered_df["Protection Category"].value_counts().reset_index()
+        protection_summary.columns = ["Category", "Count"]
+        st.subheader("🛡️ Protection Categories")
+        fig_protect = px.bar(protection_summary, x="Category", y="Count", title="Protection Categories")
+        st.plotly_chart(fig_protect, use_container_width=True)
+
+    if "Equity Initiatives" in filtered_df.columns:
+        equity_counts = filtered_df["Equity Initiatives"].value_counts().reset_index()
+        equity_counts.columns = ["Response", "Count"]
+        fig_equity = px.pie(equity_counts, names="Response", values="Count", title="Equity Initiatives")
+        st.plotly_chart(fig_equity, use_container_width=True)
+
+    if "Mitigation Planning" in filtered_df.columns:
+        mitigation_counts = filtered_df["Mitigation Planning"].value_counts().reset_index()
+        mitigation_counts.columns = ["Response", "Count"]
+        fig_mitigation = px.pie(mitigation_counts, names="Response", values="Count", title="Mitigation Planning")
+        st.plotly_chart(fig_mitigation, use_container_width=True)
+
+# Download all data
+st.download_button(
+    label="📥 Download Full Dataset",
+    data=df.to_csv(index=False),
+    file_name="Final_Combined_Emergency_Law_Data.csv",
+    mime="text/csv"
 )
-st.plotly_chart(fig_bar, use_container_width=True)
-
-# 🏛️ Pie Chart: Local Authority Enabled (Yes/No)
-st.subheader("🏛️ Local Authority Enabled (Yes/No)")
-if "Local Authority" in filtered_df.columns:
-    authority_count = filtered_df["Local Authority"].value_counts().reset_index()
-    authority_count.columns = ["Response", "Count"]
-    fig_pie = px.pie(
-        authority_count,
-        names="Response",
-        values="Count",
-        title="Local Authority Status"
-    )
-    st.plotly_chart(fig_pie, use_container_width=True)
-
-# 👥 Protections - Categorized View
-def simplify_protection(val):
-    val = str(val).lower()
-    if "language" in val:
-        return "Language Access"
-    elif "disability" in val or "functional need" in val:
-        return "Disability Inclusion"
-    elif "equity" in val or "civil rights" in val:
-        return "Equity Mandate"
-    elif "tribe" in val or "nonprofit" in val:
-        return "Community Inclusion"
-    elif "shelter" in val or "evacuation" in val:
-        return "Emergency Services"
-    elif "federal standard" in val:
-        return "Federal Standard"
-    else:
-        return "Other"
-
-if "Vulnerable Populations Protections" in filtered_df.columns:
-    filtered_df["Protection Category"] = filtered_df["Vulnerable Populations Protections"].apply(simplify_protection)
-    protection_summary = (
-        filtered_df["Protection Category"].value_counts().reset_index()
-    )
-    protection_summary.columns = ["Category", "Count"]
-    st.subheader("👥 Protection Categories")
-    fig_protect = px.bar(
-        protection_summary,
-        x="Category",
-        y="Count",
-        title="Grouped Protections" if selected_state != "All States" else "Grouped Protections Across All States"
-    )
-    st.plotly_chart(fig_protect, use_container_width=True)
-
-# 🟣 Pie Chart: Equity Initiatives
-if "Equity Initiatives" in filtered_df.columns:
-    equity_counts = filtered_df["Equity Initiatives"].value_counts().reset_index()
-    equity_counts.columns = ["Response", "Count"]
-    fig_equity = px.pie(
-        equity_counts,
-        names="Response",
-        values="Count",
-        title="Equity Initiatives"
-    )
-    st.plotly_chart(fig_equity, use_container_width=True)
-
-# 🔵 Pie Chart: Mitigation Planning
-if "Mitigation Planning" in filtered_df.columns:
-    mitigation_counts = filtered_df["Mitigation Planning"].value_counts().reset_index()
-    mitigation_counts.columns = ["Response", "Count"]
-    fig_mitigation = px.pie(
-        mitigation_counts,
-        names="Response",
-        values="Count",
-        title="Mitigation Planning"
-    )
-    st.plotly_chart(fig_mitigation, use_container_width=True)
