@@ -2,11 +2,19 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Load dataset
-df = pd.read_csv("Final_Combined_Emergency_Law_Data.csv")
-
+# Page settings
 st.set_page_config(page_title="Disaster Law Dashboard", layout="wide")
 st.title("📘 Disaster Law Dashboard for US States")
+
+# Load data
+DATA_PATH = "Final_Combined_Emergency_Law_Data.csv"
+
+@st.cache_data
+def load_data(path):
+    return pd.read_csv(path)
+
+df = load_data(DATA_PATH)
+df.columns = [col.strip() for col in df.columns]  # Clean column names
 
 # Basic Metrics
 st.subheader("📊 Basic Metrics")
@@ -35,12 +43,18 @@ authority_count.columns = ["Response", "Count"]
 fig_pie = px.pie(authority_count, names="Response", values="Count", title="Local Authority Enabled")
 st.plotly_chart(fig_pie, use_container_width=True)
 
-# Sidebar filter
+# Sidebar filter with "All States"
 st.sidebar.header("🧭 Filter Options")
-selected_state = st.sidebar.selectbox("Select a State", sorted(df["State"].dropna().unique()))
 
-# Filter and display
-filtered_df = df[df["State"] == selected_state]
+all_states = sorted(df["State"].dropna().unique())
+state_options = ["All States"] + all_states
+selected_state = st.sidebar.selectbox("Select a State", state_options)
+
+# Filter logic
+if selected_state == "All States":
+    filtered_df = df.copy()
+else:
+    filtered_df = df[df["State"] == selected_state]
 
 st.subheader(f"📄 Data for **{selected_state}**")
 
@@ -49,18 +63,28 @@ if filtered_df.empty:
 else:
     st.dataframe(filtered_df)
 
-    # Optional breakdown of protections
+    # Optional: Breakdown of protections for selected state
     if "Vulnerable Populations Protections" in filtered_df.columns:
-        protection_counts = filtered_df["Vulnerable Populations Protections"].value_counts().reset_index()
+        protection_counts = (
+            filtered_df["Vulnerable Populations Protections"]
+            .value_counts()
+            .reset_index()
+        )
         protection_counts.columns = ["Protection", "Count"]
-        st.markdown("**Protection Summary**")
-        fig_protect = px.bar(protection_counts, x="Protection", y="Count", title="Protections in Selected State")
-        st.plotly_chart(fig_protect, use_container_width=True)
+        if not protection_counts.empty:
+            st.markdown("**Protection Summary**")
+            fig_protect = px.bar(
+                protection_counts,
+                x="Protection",
+                y="Count",
+                title="Protections in Selected State"
+            )
+            st.plotly_chart(fig_protect, use_container_width=True)
 
 # Download button
 st.download_button(
     label="⬇️ Download Filtered Data as CSV",
     data=filtered_df.to_csv(index=False),
-    file_name=f"{selected_state}_disaster_laws.csv",
+    file_name=f"{selected_state.replace(' ', '_')}_disaster_laws.csv",
     mime="text/csv"
 )
