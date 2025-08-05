@@ -2,59 +2,81 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
-# Load dataset
+# Load data
 df = pd.read_csv("Final_Combined_Emergency_Law_Data.csv")
 
-# Sidebar filter
+# Sidebar
 st.sidebar.header("Filter by State")
 states = ["All States"] + sorted(df["State"].dropna().unique().tolist())
 selected_state = st.sidebar.selectbox("Select a State", states)
 
-# Filter data
-if selected_state == "All States":
-    filtered_df = df.copy()
-else:
-    filtered_df = df[df["State"] == selected_state]
-
+# Filter
+filtered_df = df.copy() if selected_state == "All States" else df[df["State"] == selected_state]
 title_state = selected_state if selected_state != "All States" else "All U.S. States"
 
+# Custom CSS for cards
+st.markdown("""
+    <style>
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: start;
+        margin-top: 20px;
+    }
+    .card {
+        background-color: #f9f9f9;
+        padding: 20px 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+        flex: 1;
+        min-width: 200px;
+        max-width: 250px;
+        text-align: left;
+    }
+    .card-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 5px;
+    }
+    .card-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #222;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Tabs
-tab1, tab2, tab3 = st.tabs([
-    "METRICS", 
-    "STATE CHARTS", 
-    "PROTECTIONS"
-])
+tab1, tab2, tab3 = st.tabs(["METRICS", "STATE CHARTS", "PROTECTIONS"])
 
 # --- Tab 1: METRICS ---
 with tab1:
-    st.header(f"📊 Disaster Law Metrics – {title_state}")
-    st.markdown("Key legislative and emergency preparedness markers for the selected region.")
-    st.markdown("---")
+    st.header(f"Disaster Law Metrics – {title_state}")
+    st.markdown('<div class="card-container">', unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("### 🟡 Equity Initiatives")
-        st.metric(label="", value=filtered_df["Equity Initiatives"].notna().sum())
-    with col2:
-        st.markdown("### 🔷 Mutual Aid Agreements")
-        st.metric(label="", value=filtered_df["Mutual Aid"].str.lower().eq("yes").sum())
-    with col3:
-        st.markdown("### 🟢 Mitigation Planning")
-        st.metric(label="", value=filtered_df["Mitigation Planning"].str.lower().eq("yes").sum())
+    cards = {
+        "Equity Initiatives": filtered_df["Equity Initiatives"].notna().sum(),
+        "Mutual Aid Agreements": filtered_df["Mutual Aid"].str.lower().eq("yes").sum(),
+        "Mitigation Planning": filtered_df["Mitigation Planning"].str.lower().eq("yes").sum(),
+        "Emergency Powers (Local)": filtered_df["Local Emergency Powers"].str.lower().eq("yes").sum(),
+        "Vulnerable Population Protection": filtered_df["Vulnerable Populations Protections"].notna().sum()
+    }
 
-    col4, col5 = st.columns(2)
-    with col4:
-        st.markdown("### 🧭 Emergency Powers (Local)")
-        st.metric(label="", value=filtered_df["Local Emergency Powers"].str.lower().eq("yes").sum())
-    with col5:
-        st.markdown("### 🧒 Vulnerable Population Protection")
-        st.metric(label="", value=filtered_df["Vulnerable Populations Protections"].notna().sum())
+    for title, value in cards.items():
+        st.markdown(f"""
+            <div class="card">
+                <div class="card-title">{title}</div>
+                <div class="card-value">{value}</div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- Tab 2: STATE CHARTS ---
 with tab2:
-    st.header(f"📍 State-Level Breakdown – {title_state}")
-    st.markdown("Visual summaries of record counts and authority indicators.")
-    st.markdown("---")
+    st.header(f"State-Level Breakdown – {title_state}")
 
     st.subheader("Entries by State")
     state_counts = filtered_df["State"].value_counts()
@@ -67,8 +89,8 @@ with tab2:
     local_authority_counts = filtered_df["Local Authority"].fillna("No").value_counts()
     if not local_authority_counts.empty:
         fig = px.pie(
-            names=local_authority_counts.index, 
-            values=local_authority_counts.values, 
+            names=local_authority_counts.index,
+            values=local_authority_counts.values,
             title="Local Authority Presence",
             hole=0.4
         )
@@ -78,9 +100,7 @@ with tab2:
 
 # --- Tab 3: PROTECTIONS ---
 with tab3:
-    st.header(f"🛡️ Protections Overview – {title_state}")
-    st.markdown("Focus on laws and measures protecting vulnerable populations.")
-    st.markdown("---")
+    st.header(f"Protections Overview – {title_state}")
 
     protection_counts = filtered_df["Vulnerable Populations Protections"].dropna().value_counts()
     if not protection_counts.empty:
@@ -110,17 +130,17 @@ with tab3:
     initiative_group["Count"] = initiative_group["State"].apply(len)
 
     if not initiative_group.empty:
-        st.subheader("📘 Equity Initiatives by Type")
+        st.subheader("Equity Initiatives by Type")
         fig3 = px.pie(
             initiative_group,
             names="Equity Label",
             values="Count",
-            title="Equity Initiative Types",
+            title="Equity Initiatives",
             hole=0.3
         )
         st.plotly_chart(fig3)
 
-        st.markdown("### 📍 States by Equity Initiative")
+        st.markdown("### States by Equity Initiative")
         for _, row in initiative_group.iterrows():
             label = row["Equity Label"]
             states = ", ".join(sorted(row["State"]))
