@@ -150,25 +150,14 @@ with tab3:
     st.header("Vulnerable Populations Protections")
     protection_counts = filtered_df["Vulnerable Populations Protections"].dropna().value_counts()
     if not protection_counts.empty:
-        protection_counts = protection_counts.sort_values(ascending=False)
-        short_labels = [f"Protection {i+1}" for i in range(len(protection_counts))]
-        full_labels = protection_counts.index.tolist()
         fig2 = px.bar(
-            y=short_labels,
-            x=protection_counts.values,
-            labels={"y": "Protection Type", "x": "Count"},
-            title="Protections Across All States",
-            orientation='h'
+            x=protection_counts.index,
+            y=protection_counts.values,
+            labels={"x": "Protection", "y": "Count"},
+            title="Protections Across All States"
         )
-        fig2.update_layout(
-            height=max(400, len(protection_counts) * 30),
-            yaxis={'categoryorder':'array', 'categoryarray':short_labels}
-        )
-        st.plotly_chart(fig2, use_container_width=True)
-        st.markdown("### Protection Type Details")
-        for short, full in zip(short_labels, full_labels):
-            with st.expander(short, expanded=False):
-                st.write(full)
+        fig2.update_layout(xaxis_tickangle=45)
+        st.plotly_chart(fig2)
     else:
         st.warning("No vulnerable population protections data available for this state.")
     # Equity Initiatives
@@ -191,7 +180,7 @@ with tab3:
             title="Equity Initiatives",
             hole=0.3
         )
-        st.plotly_chart(fig3, use_container_width=True)
+        st.plotly_chart(fig3)
         st.markdown("### States by Equity Initiative")
         for _, row in initiative_group.iterrows():
             label = row["Equity Label"]
