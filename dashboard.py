@@ -16,41 +16,52 @@ if selected_state == "All States":
 else:
     filtered_df = df[df["State"] == selected_state]
 
-# Bold tab headers
+title_state = selected_state if selected_state != "All States" else "All U.S. States"
+
+# Tabs
 tab1, tab2, tab3 = st.tabs([
-    "**METRICS**", 
-    "**STATE CHARTS**", 
-    "**PROTECTIONS**"
+    "METRICS", 
+    "STATE CHARTS", 
+    "PROTECTIONS"
 ])
 
 # --- Tab 1: METRICS ---
 with tab1:
-    st.header("Disaster Law Metrics")
+    st.header(f"📊 Disaster Law Metrics – {title_state}")
+    st.markdown("Key legislative and emergency preparedness markers for the selected region.")
+    st.markdown("---")
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Equity Initiatives", filtered_df["Equity Initiatives"].notna().sum())
+        st.markdown("### 🟡 Equity Initiatives")
+        st.metric(label="", value=filtered_df["Equity Initiatives"].notna().sum())
     with col2:
-        st.metric("Mutual Aid Agreements", filtered_df["Mutual Aid"].str.lower().eq("yes").sum())
+        st.markdown("### 🔷 Mutual Aid Agreements")
+        st.metric(label="", value=filtered_df["Mutual Aid"].str.lower().eq("yes").sum())
     with col3:
-        st.metric("Mitigation Planning", filtered_df["Mitigation Planning"].str.lower().eq("yes").sum())
+        st.markdown("### 🟢 Mitigation Planning")
+        st.metric(label="", value=filtered_df["Mitigation Planning"].str.lower().eq("yes").sum())
 
     col4, col5 = st.columns(2)
     with col4:
-        st.metric("Emergency Powers (Local)", filtered_df["Local Emergency Powers"].str.lower().eq("yes").sum())
+        st.markdown("### 🧭 Emergency Powers (Local)")
+        st.metric(label="", value=filtered_df["Local Emergency Powers"].str.lower().eq("yes").sum())
     with col5:
-        st.metric("Vulnerable Population Protection", filtered_df["Vulnerable Populations Protections"].notna().sum())
+        st.markdown("### 🧒 Vulnerable Population Protection")
+        st.metric(label="", value=filtered_df["Vulnerable Populations Protections"].notna().sum())
 
 # --- Tab 2: STATE CHARTS ---
 with tab2:
-    st.header("State Charts")
+    st.header(f"📍 State-Level Breakdown – {title_state}")
+    st.markdown("Visual summaries of record counts and authority indicators.")
+    st.markdown("---")
 
-    st.subheader("Number of Entries per State")
+    st.subheader("Entries by State")
     state_counts = filtered_df["State"].value_counts()
     if not state_counts.empty:
         st.bar_chart(state_counts)
     else:
-        st.warning("No data available for selected state.")
+        st.info("No entries found for this state.")
 
     st.subheader("Local Authority Enabled")
     local_authority_counts = filtered_df["Local Authority"].fillna("No").value_counts()
@@ -63,11 +74,13 @@ with tab2:
         )
         st.plotly_chart(fig)
     else:
-        st.warning("No Local Authority data available for selected state.")
+        st.info("No local authority data available.")
 
 # --- Tab 3: PROTECTIONS ---
 with tab3:
-    st.header("Vulnerable Populations Protections")
+    st.header(f"🛡️ Protections Overview – {title_state}")
+    st.markdown("Focus on laws and measures protecting vulnerable populations.")
+    st.markdown("---")
 
     protection_counts = filtered_df["Vulnerable Populations Protections"].dropna().value_counts()
     if not protection_counts.empty:
@@ -75,12 +88,12 @@ with tab3:
             x=protection_counts.index,
             y=protection_counts.values,
             labels={"x": "Protection", "y": "Count"},
-            title="Protections Across All States"
+            title="Types of Protections Across States"
         )
         fig2.update_layout(xaxis_tickangle=45)
         st.plotly_chart(fig2)
     else:
-        st.warning("No vulnerable population protections data available for this state.")
+        st.info("No protection data available for this state.")
 
     # Equity Initiatives
     equity_df = filtered_df[filtered_df["Equity Initiatives"].notna()][["State", "Equity Initiatives"]].copy()
@@ -97,22 +110,21 @@ with tab3:
     initiative_group["Count"] = initiative_group["State"].apply(len)
 
     if not initiative_group.empty:
-        st.subheader("Equity Initiatives by Type")
+        st.subheader("📘 Equity Initiatives by Type")
         fig3 = px.pie(
             initiative_group,
             names="Equity Label",
             values="Count",
-            title="Equity Initiatives",
+            title="Equity Initiative Types",
             hole=0.3
         )
         st.plotly_chart(fig3)
 
-        st.markdown("### States by Equity Initiative")
+        st.markdown("### 📍 States by Equity Initiative")
         for _, row in initiative_group.iterrows():
             label = row["Equity Label"]
             states = ", ".join(sorted(row["State"]))
             with st.expander(label, expanded=False):
                 st.write(states)
     else:
-        st.warning("No equity initiatives data available for this state.")
-
+        st.info("No equity initiatives data available for this state.")
