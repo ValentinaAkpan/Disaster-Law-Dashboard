@@ -115,3 +115,4 @@ with tab3:
                 st.write(states)
     else:
         st.warning("No equity initiatives data available for this state.")
+
