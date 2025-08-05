@@ -10,15 +10,20 @@ st.sidebar.header("Filter by State")
 states = ["All States"] + sorted(df["State"].dropna().unique().tolist())
 selected_state = st.sidebar.selectbox("Select a State", states)
 
-filtered_df = df.copy() if selected_state == "All States" else df[df["State"] == selected_state]
+# Filter data
+if selected_state == "All States":
+    filtered_df = df.copy()
+else:
+    filtered_df = df[df["State"] == selected_state]
 
-# Tab layout
-tab1, tab2, tab3 = st.tabs(["**METRICS**", "**STATE CHARTS**", "**PROTECTIONS**"])
+# Tabs
+tab1, tab2, tab3 = st.tabs(["METRICS", "STATE CHARTS", "PROTECTIONS"])
 
-# ---- TAB 1 ----
+# --- Tab 1: METRICS ---
 with tab1:
     st.header("Disaster Law Metrics")
 
+    # Collect metric values
     metrics = {
         "Equity Initiatives": filtered_df["Equity Initiatives"].notna().sum(),
         "Mutual Aid Agreements": filtered_df["Mutual Aid"].str.lower().eq("yes").sum(),
@@ -27,50 +32,51 @@ with tab1:
         "Vulnerable Population Protection": filtered_df["Vulnerable Populations Protections"].notna().sum()
     }
 
-    # Horizontal card layout
+    # Inject styles for horizontal cards
     st.markdown("""
         <style>
-        .card-container {
+        .horizontal-cards {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 16px;
             margin-top: 20px;
+            justify-content: center;
         }
-        .card {
-            background-color: #fafafa;
-            padding: 25px;
+        .metric-card {
+            background-color: #f9f9f9;
+            padding: 20px 30px;
             border-radius: 12px;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.05);
-            width: 230px;
-            min-height: 120px;
-            text-align: left;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            width: 220px;
+            text-align: center;
             flex: 1;
         }
-        .card h4 {
-            margin: 0;
+        .metric-card h4 {
             font-size: 16px;
-            color: #333;
+            margin: 0;
+            color: #555;
         }
-        .card p {
+        .metric-card p {
             font-size: 32px;
             font-weight: bold;
             margin: 10px 0 0;
-            color: #111;
+            color: #000;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="card-container">', unsafe_allow_html=True)
+    # Render horizontal cards
+    st.markdown('<div class="horizontal-cards">', unsafe_allow_html=True)
     for label, value in metrics.items():
         st.markdown(f"""
-            <div class="card">
+            <div class="metric-card">
                 <h4>{label}</h4>
                 <p>{value}</p>
             </div>
         """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ---- TAB 2 ----
+# --- Tab 2: STATE CHARTS ---
 with tab2:
     st.header("State Charts")
 
@@ -85,8 +91,8 @@ with tab2:
     local_authority_counts = filtered_df["Local Authority"].fillna("No").value_counts()
     if not local_authority_counts.empty:
         fig = px.pie(
-            names=local_authority_counts.index,
-            values=local_authority_counts.values,
+            names=local_authority_counts.index, 
+            values=local_authority_counts.values, 
             title="Local Authority Presence",
             hole=0.4
         )
@@ -94,7 +100,7 @@ with tab2:
     else:
         st.warning("No Local Authority data available for selected state.")
 
-# ---- TAB 3 ----
+# --- Tab 3: PROTECTIONS ---
 with tab3:
     st.header("Vulnerable Populations Protections")
 
@@ -111,6 +117,7 @@ with tab3:
     else:
         st.warning("No vulnerable population protections data available for this state.")
 
+    # Equity Initiatives
     equity_df = filtered_df[filtered_df["Equity Initiatives"].notna()][["State", "Equity Initiatives"]].copy()
 
     def clean_initiative(text):
