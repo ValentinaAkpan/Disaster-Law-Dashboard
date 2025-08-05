@@ -5,36 +5,38 @@ import plotly.express as px
 # Load data
 df = pd.read_csv("Final_Combined_Emergency_Law_Data.csv")
 
-# Sidebar
+# Sidebar filter
 st.sidebar.header("Filter by State")
 states = ["All States"] + sorted(df["State"].dropna().unique().tolist())
 selected_state = st.sidebar.selectbox("Select a State", states)
 
-# Filter data
+# Filter dataset
 filtered_df = df.copy() if selected_state == "All States" else df[df["State"] == selected_state]
 title_state = selected_state if selected_state != "All States" else "All U.S. States"
 
-# Add custom vertical card styling
+# --- Custom CSS for Horizontal Card Layout ---
 st.markdown("""
     <style>
-    .card-container-vertical {
+    .card-container {
         display: flex;
-        flex-direction: column;
-        gap: 15px;
+        flex-wrap: wrap;
+        gap: 20px;
         margin-top: 20px;
     }
-    .card-vertical {
+    .card {
         background-color: #f9f9f9;
         padding: 20px 25px;
         border-radius: 10px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.07);
-        width: 100%;
+        width: 220px;
+        flex-grow: 1;
+        text-align: left;
     }
     .card-title {
         font-size: 14px;
         font-weight: 600;
         color: #555;
-        margin-bottom: 4px;
+        margin-bottom: 5px;
     }
     .card-value {
         font-size: 30px;
@@ -44,13 +46,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Tabs
+# --- Tabs ---
 tab1, tab2, tab3 = st.tabs(["METRICS", "STATE CHARTS", "PROTECTIONS"])
 
-# --- Tab 1: METRICS (VERTICAL CARDS) ---
+# --- Tab 1: METRICS (Horizontal Cards) ---
 with tab1:
     st.header(f"Disaster Law Metrics – {title_state}")
-    st.markdown('<div class="card-container-vertical">', unsafe_allow_html=True)
+    st.markdown('<div class="card-container">', unsafe_allow_html=True)
 
     cards = {
         "Equity Initiatives": filtered_df["Equity Initiatives"].notna().sum(),
@@ -62,7 +64,7 @@ with tab1:
 
     for title, value in cards.items():
         st.markdown(f"""
-            <div class="card-vertical">
+            <div class="card">
                 <div class="card-title">{title}</div>
                 <div class="card-value">{value}</div>
             </div>
@@ -111,7 +113,7 @@ with tab3:
     else:
         st.info("No protection data available for this state.")
 
-    # Equity Initiatives
+    # --- Equity Initiatives ---
     equity_df = filtered_df[filtered_df["Equity Initiatives"].notna()][["State", "Equity Initiatives"]].copy()
 
     def clean_initiative(text):
