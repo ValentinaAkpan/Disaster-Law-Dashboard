@@ -10,38 +10,34 @@ st.sidebar.header("Filter by State")
 states = ["All States"] + sorted(df["State"].dropna().unique().tolist())
 selected_state = st.sidebar.selectbox("Select a State", states)
 
-# Filter
+# Filter data
 filtered_df = df.copy() if selected_state == "All States" else df[df["State"] == selected_state]
 title_state = selected_state if selected_state != "All States" else "All U.S. States"
 
-# Custom CSS for cards
+# Add custom vertical card styling
 st.markdown("""
     <style>
-    .card-container {
+    .card-container-vertical {
         display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        justify-content: start;
+        flex-direction: column;
+        gap: 15px;
         margin-top: 20px;
     }
-    .card {
+    .card-vertical {
         background-color: #f9f9f9;
         padding: 20px 25px;
-        border-radius: 12px;
+        border-radius: 10px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.07);
-        flex: 1;
-        min-width: 200px;
-        max-width: 250px;
-        text-align: left;
+        width: 100%;
     }
     .card-title {
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 600;
-        color: #444;
-        margin-bottom: 5px;
+        color: #555;
+        margin-bottom: 4px;
     }
     .card-value {
-        font-size: 32px;
+        font-size: 30px;
         font-weight: 700;
         color: #222;
     }
@@ -51,10 +47,10 @@ st.markdown("""
 # Tabs
 tab1, tab2, tab3 = st.tabs(["METRICS", "STATE CHARTS", "PROTECTIONS"])
 
-# --- Tab 1: METRICS ---
+# --- Tab 1: METRICS (VERTICAL CARDS) ---
 with tab1:
     st.header(f"Disaster Law Metrics – {title_state}")
-    st.markdown('<div class="card-container">', unsafe_allow_html=True)
+    st.markdown('<div class="card-container-vertical">', unsafe_allow_html=True)
 
     cards = {
         "Equity Initiatives": filtered_df["Equity Initiatives"].notna().sum(),
@@ -66,7 +62,7 @@ with tab1:
 
     for title, value in cards.items():
         st.markdown(f"""
-            <div class="card">
+            <div class="card-vertical">
                 <div class="card-title">{title}</div>
                 <div class="card-value">{value}</div>
             </div>
