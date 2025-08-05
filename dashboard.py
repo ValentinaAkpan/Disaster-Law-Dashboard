@@ -62,7 +62,7 @@ with tab1:
             font-size: 28px;
             font-weight: bold;
             margin: 12px 0 0;
-            color: #2d5840; /* New color applied to the value */
+            color: #2d5840; /* Dark green color for values */
         }
         @media (max-width: 600px) {
             .metric-card {
@@ -79,16 +79,20 @@ with tab1:
         }
         </style>
     """, unsafe_allow_html=True)
-    # Render horizontal cards using st.columns
-    cols = st.columns(len(metrics))
-    for idx, (label, value) in enumerate(metrics.items()):
-        with cols[idx]:
-            st.markdown(f"""
-                <div class="metric-card">
-                    <h4>{label}</h4>
-                    <p>{value}</p>
-                </div>
-            """, unsafe_allow_html=True)
+    # Render horizontal cards using st.columns with 3 per line
+    for i in range(0, len(metrics), 3):  # Step by 3 to group columns
+        cols = st.columns(3)  # Create 3 columns per row
+        for j in range(3):
+            idx = i + j
+            if idx < len(metrics):
+                label, value = list(metrics.items())[idx]
+                with cols[j]:
+                    st.markdown(f"""
+                        <div class="metric-card">
+                            <h4>{label}</h4>
+                            <p>{value}</p>
+                        </div>
+                    """, unsafe_allow_html=True)
 
 # --- Tab 2: STATE CHARTS ---
 with tab2:
