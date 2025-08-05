@@ -33,25 +33,32 @@ with tab1:
     # Inject styles for horizontal cards
     st.markdown("""
         <style>
+        /* Ensure the app takes full width */
+        .stApp {
+            max-width: 1200px !important;
+            margin: 0 auto;
+        }
         .horizontal-cards {
             display: flex;
-            flex-direction: row; /* Explicitly set row direction */
-            flex-wrap: nowrap; /* Prevent wrapping to ensure horizontal layout */
+            flex-direction: row;
+            flex-wrap: nowrap;
             gap: 16px;
             margin: 20px 0;
-            justify-content: space-between; /* Distribute cards evenly */
+            justify-content: flex-start;
             align-items: stretch;
-            width: 100%; /* Ensure container takes full width */
+            width: 100%;
+            min-width: 800px; /* Minimum width to enforce horizontal layout */
             overflow-x: auto; /* Allow horizontal scrolling if needed */
+            box-sizing: border-box;
         }
         .metric-card {
             background-color: #f9f9f9;
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            min-width: 160px; /* Reduced min-width for better fit */
+            min-width: 150px; /* Reduced for better fit */
             max-width: 200px;
-            flex: 1 1 160px; /* Flexible sizing */
+            flex: 1 1 150px;
             text-align: center;
             display: flex;
             flex-direction: column;
@@ -73,15 +80,11 @@ with tab1:
             margin: 12px 0 0;
             color: #1a73e8;
         }
-        /* Override Streamlit's default styles if needed */
-        .stMarkdown, .stApp {
-            width: 100% !important;
-            max-width: none !important;
-        }
         /* Responsive adjustments */
-        @media (max-width: 768px) {
+        @media (max-width: 800px) {
             .horizontal-cards {
-                flex-wrap: wrap; /* Allow wrapping on smaller screens */
+                flex-wrap: wrap;
+                min-width: 0;
                 justify-content: center;
             }
             .metric-card {
