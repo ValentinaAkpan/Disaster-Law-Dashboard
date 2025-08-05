@@ -38,8 +38,8 @@ with tab1:
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            min-width: 150px;
-            max-width: 200px;
+            width: 180px; /* Fixed width for uniform size */
+            height: 120px; /* Fixed height for uniform size */
             text-align: center;
             display: flex;
             flex-direction: column;
@@ -54,17 +54,20 @@ with tab1:
             margin: 0;
             color: #333;
             font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .metric-card p {
             font-size: 28px;
             font-weight: bold;
             margin: 12px 0 0;
-            color: #1a73e8;
+            color: #2d5840; /* New color applied to the value */
         }
         @media (max-width: 600px) {
             .metric-card {
-                min-width: 140px;
-                max-width: 180px;
+                width: 140px; /* Adjusted for smaller screens */
+                height: 100px;
                 padding: 15px;
             }
             .metric-card h4 {
