@@ -16,6 +16,35 @@ if selected_state == "All States":
 else:
     filtered_df = df[df["State"] == selected_state]
 
+# Custom CSS for tabs to make them more spacious and larger
+st.markdown("""
+    <style>
+    div[data-testid="column"] {
+        margin-bottom: 20px; /* Optional: Add spacing between rows if needed */
+    }
+    [data-testid="stTab"] {
+        padding: 16px 32px !important; /* Increased padding for even larger tabs */
+        font-size: 20px !important; /* Larger font size */
+        margin-right: 24px !important; /* Increased space between tabs */
+        border-radius: 10px !important; /* Softer corners */
+        background-color: #f0f2f6 !important; /* Light background for visibility */
+        color: #333 !important; /* Text color */
+        transition: background-color 0.3s ease !important;
+    }
+    [data-testid="stTab"]:hover {
+        background-color: #e0e2e8 !important; /* Hover effect */
+    }
+    [data-testid="stTab"][aria-selected="true"] {
+        background-color: #ffffff !important; /* Active tab background */
+        border-bottom: 4px solid #ff4b4b !important; /* Thicker underline for active tab */
+    }
+    .stTabs {
+        gap: 24px !important; /* Increased space between tabs container */
+        padding: 10px 0 !important; /* Add vertical padding to the tab bar for more space */
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Tabs
 tab1, tab2, tab3 = st.tabs(["METRICS", "STATE CHARTS", "PROTECTIONS"])
 
