@@ -151,13 +151,17 @@ with tab3:
     protection_counts = filtered_df["Vulnerable Populations Protections"].dropna().value_counts()
     if not protection_counts.empty:
         fig2 = px.bar(
-            x=protection_counts.index,
-            y=protection_counts.values,
-            labels={"x": "Protection", "y": "Count"},
-            title="Protections Across All States"
+            y=protection_counts.index,
+            x=protection_counts.values,
+            labels={"y": "Protection", "x": "Count"},
+            title="Protections Across All States",
+            orientation='h'
         )
-        fig2.update_layout(xaxis_tickangle=45)
-        st.plotly_chart(fig2)
+        fig2.update_layout(
+            height=800,  # Increase height for better readability with long labels
+            yaxis={'categoryorder':'total ascending'}  # Sort by count ascending
+        )
+        st.plotly_chart(fig2, use_container_width=True)
     else:
         st.warning("No vulnerable population protections data available for this state.")
     # Equity Initiatives
@@ -180,7 +184,7 @@ with tab3:
             title="Equity Initiatives",
             hole=0.3
         )
-        st.plotly_chart(fig3)
+        st.plotly_chart(fig3, use_container_width=True)
         st.markdown("### States by Equity Initiative")
         for _, row in initiative_group.iterrows():
             label = row["Equity Label"]
